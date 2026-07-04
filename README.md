@@ -34,6 +34,15 @@ Durante os testes, recomenda-se manter:
 const GERAR_APENAS_UM_RELATORIO_TESTE = true;
 ```
 
+## Sobre este projeto
+
+Estou publicando este projeto de forma aberta porque acredito no compartilhamento de conhecimento e na ideia de que código útil não precisa ficar trancado. Se isso puder ajudar alguém a automatizar um processo, aprender Google Apps Script ou usar como base para um projeto próprio, então já valeu a pena.
+
+Pode usar, adaptar, melhorar e reaproveitar à vontade.
+
+Se você tiver qualquer comentário, crítica, sugestão ou ideia de melhoria, vou ficar genuinamente feliz em ler. Feedback, correções e contribuições são muito bem-vindos.
+
+Obrigado por passar por aqui.
 Assim, o script gera apenas um relatório de teste com base na linha definida em `LINHA_DA_RESPOSTA_TESTE`.
 
 Quando tudo estiver funcionando corretamente, altere para:
