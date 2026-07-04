@@ -34,6 +34,14 @@ Durante os testes, recomenda-se manter:
 const GERAR_APENAS_UM_RELATORIO_TESTE = true;
 ```
 
+Quando tudo estiver funcionando corretamente, altere para:
+
+```javascript
+const GERAR_APENAS_UM_RELATORIO_TESTE = false;
+```
+
+A partir desse momento, o acionador passará a processar automaticamente apenas novas respostas da planilha.
+
 ## Sobre este projeto
 
 Estou publicando este projeto de forma aberta porque acredito no compartilhamento de conhecimento e na ideia de que código útil não precisa ficar trancado. Se isso puder ajudar alguém a automatizar um processo, aprender Google Apps Script ou usar como base para um projeto próprio, então já valeu a pena.
@@ -44,11 +52,3 @@ Se você tiver qualquer comentário, crítica, sugestão ou ideia de melhoria, v
 
 Obrigado por passar por aqui.
 Assim, o script gera apenas um relatório de teste com base na linha definida em `LINHA_DA_RESPOSTA_TESTE`.
-
-Quando tudo estiver funcionando corretamente, altere para:
-
-```javascript
-const GERAR_APENAS_UM_RELATORIO_TESTE = false;
-```
-
-A partir desse momento, o acionador passará a processar automaticamente apenas novas respostas da planilha.
