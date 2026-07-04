@@ -41,6 +41,7 @@ const GERAR_APENAS_UM_RELATORIO_TESTE = false;
 ```
 
 A partir desse momento, o acionador passará a processar automaticamente apenas novas respostas da planilha.
+Assim, o script gera apenas um relatório de teste com base na linha definida em `LINHA_DA_RESPOSTA_TESTE`.
 
 ## Sobre este projeto
 
@@ -51,4 +52,3 @@ Pode usar, adaptar, melhorar e reaproveitar à vontade.
 Se você tiver qualquer comentário, crítica, sugestão ou ideia de melhoria, vou ficar genuinamente feliz em ler. Feedback, correções e contribuições são muito bem-vindos.
 
 Obrigado por passar por aqui.
-Assim, o script gera apenas um relatório de teste com base na linha definida em `LINHA_DA_RESPOSTA_TESTE`.
