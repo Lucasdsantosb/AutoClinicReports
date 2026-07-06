@@ -1,43 +1,61 @@
 function gerarRelatoriosPacientes() {
 
   // ===========================
-  // CONFIGURAÇÕES DO PROJETO
+  // CONFIGURAÇÕES PRINCIPAIS
   // ===========================
   // PLANILHA_ID: ID da planilha do Google Sheets que recebe as respostas do formulário
-  // NOME_ABA: nome da aba onde as respostas são armazenadas
-  // PASTA_ID: ID da pasta do Google Drive onde os relatórios .txt serão salvos
+  // NOME_ABA: nome da aba onde as respostas estão armazenadas
+  // PASTA_ID: ID da pasta do Google Drive onde os arquivos .txt serão salvos
   const PLANILHA_ID = "COLOQUE_O_ID_DA_SUA_PLANILHA";
-  const NOME_ABA = "NOME_DA_ABA";
-  const PASTA_ID = "ID_DA_SUA_PASTA_DO_DRIVE";
+  const NOME_ABA = "COLOQUE_O_NOME_DA_ABA";
+  const PASTA_ID = "COLOQUE_O_ID_DA_PASTA_DO_DRIVE";
 
   // ===========================
-  // MODO DE TESTE
+  // MODO DE EXECUÇÃO
   // ===========================
-  // Se GERAR_APENAS_UM_RELATORIO_TESTE = true:
-  // o script gera apenas 1 relatório com base na linha informada em LINHA_DA_RESPOSTA_TESTE.
+  // MODO_TESTE = true:
+  // gera relatórios apenas das linhas informadas em LINHAS_DE_TESTE
   //
-  // Exemplo:
-  // - true  → gera somente o relatório da linha escolhida
-  // - false → processa automaticamente apenas novas respostas da planilha
-  const GERAR_APENAS_UM_RELATORIO_TESTE = false;
-  const LINHA_DA_RESPOSTA_TESTE = 304;
+  // MODO_TESTE = false:
+  // processa automaticamente apenas novas respostas da planilha
+  const MODO_TESTE = false;
 
-  // Abre a planilha e acessa a aba onde estão as respostas
+  // Linhas específicas da planilha usadas apenas no modo de teste
+  const LINHAS_DE_TESTE = [2];
+
+  // ===========================
+  // ABERTURA DA PLANILHA
+  // ===========================
   const planilha = SpreadsheetApp.openById(PLANILHA_ID);
   const aba = planilha.getSheetByName(NOME_ABA);
 
-  // Obtém a última linha e a última coluna preenchidas na planilha
+  // Última linha e última coluna preenchidas da planilha
   const ultimaLinha = aba.getLastRow();
   const ultimaColuna = aba.getLastColumn();
 
-  // Lê a primeira linha da planilha, onde estão os cabeçalhos das colunas
+  // Lê a primeira linha da planilha, onde ficam os cabeçalhos
   const cabecalhos = aba.getRange(1, 1, 1, ultimaColuna).getValues()[0];
 
-  // Localiza os índices das colunas importantes com base no nome do cabeçalho
-  const indiceData = cabecalhos.indexOf("Carimbo de data/hora");
-  const indicePaciente = cabecalhos.indexOf("NOME DO PACIENTE COMPLETO");
+  // ===========================
+  // LOCALIZAÇÃO DOS CABEÇALHOS IMPORTANTES
+  // ===========================
+  // Procura a coluna da data/hora e a coluna do nome do paciente
+  // usando o texto do cabeçalho, sem depender da letra da coluna
+  const indiceData = cabecalhos.findIndex(cabecalho =>
+    String(cabecalho)
+      .trim()
+      .toUpperCase()
+      .includes("CARIMBO DE DATA/HORA")
+  );
 
-  // Se os cabeçalhos obrigatórios não existirem, interrompe o script com erro
+  const indicePaciente = cabecalhos.findIndex(cabecalho =>
+    String(cabecalho)
+      .trim()
+      .toUpperCase()
+      .includes("NOME DO PACIENTE COMPLETO")
+  );
+
+  // Se os cabeçalhos obrigatórios não forem encontrados, o script é interrompido
   if (indiceData === -1) {
     throw new Error("Cabeçalho 'Carimbo de data/hora' não encontrado.");
   }
@@ -46,33 +64,32 @@ function gerarRelatoriosPacientes() {
     throw new Error("Cabeçalho 'NOME DO PACIENTE COMPLETO' não encontrado.");
   }
 
-  // Abre a pasta do Drive onde os relatórios serão criados
+  // Abre a pasta do Google Drive onde os relatórios serão salvos
   const pasta = DriveApp.getFolderById(PASTA_ID);
 
-  // Array que vai armazenar as respostas que serão processadas
+  // Array que armazenará as respostas a serem processadas
   let respostas = [];
 
   // ===========================
   // DEFINIÇÃO DAS RESPOSTAS A PROCESSAR
   // ===========================
-  if (GERAR_APENAS_UM_RELATORIO_TESTE) {
+  if (MODO_TESTE) {
 
-    // Modo teste:
-    // pega somente a linha definida em LINHA_DA_RESPOSTA_TESTE
-    respostas = aba
-      .getRange(LINHA_DA_RESPOSTA_TESTE, 1, 1, ultimaColuna)
-      .getValues();
+    // No modo de teste, gera relatórios apenas das linhas informadas manualmente
+    respostas = LINHAS_DE_TESTE.map(function(linha) {
+      return aba.getRange(linha, 1, 1, ultimaColuna).getValues()[0];
+    });
 
   } else {
 
-    // Modo produção:
-    // processa apenas novas respostas que ainda não viraram relatório
+    // No modo produção, o script processa apenas novas respostas
     const props = PropertiesService.getScriptProperties();
+
+    // Recupera a última linha já processada em execuções anteriores
     let ultimaProcessada = Number(props.getProperty("ULTIMA_LINHA"));
 
-    // Primeira execução:
-    // apenas salva a última linha atual como ponto de partida
-    // e não gera relatórios antigos
+    // Se for a primeira execução em modo produção:
+    // salva a última linha atual e encerra, para evitar gerar relatórios antigos
     if (!ultimaProcessada) {
       props.setProperty("ULTIMA_LINHA", ultimaLinha.toString());
       Logger.log("Inicializado. Nenhum relatório gerado.");
@@ -85,17 +102,17 @@ function gerarRelatoriosPacientes() {
       return;
     }
 
-    // Busca apenas as linhas novas ainda não processadas
+    // Busca apenas as novas respostas que ainda não foram processadas
     respostas = aba
       .getRange(ultimaProcessada + 1, 1, ultimaLinha - ultimaProcessada, ultimaColuna)
       .getValues();
 
-    // Atualiza o controle da última linha processada
+    // Atualiza a última linha processada
     props.setProperty("ULTIMA_LINHA", ultimaLinha.toString());
   }
 
   // ===========================
-  // PROCESSAMENTO DAS RESPOSTAS
+  // GERAÇÃO DOS RELATÓRIOS
   // ===========================
   respostas.forEach(function(dados) {
 
@@ -105,7 +122,8 @@ function gerarRelatoriosPacientes() {
     // Obtém o nome completo do paciente
     const nomePaciente = String(dados[indicePaciente] || "").trim();
 
-    // Define o nome do arquivo usando primeiro nome + último sobrenome
+    // Divide o nome do paciente em primeiro nome e último sobrenome
+    // para compor o nome do arquivo
     let primeiroNome = "Paciente";
     let ultimoSobrenome = "";
 
@@ -115,7 +133,7 @@ function gerarRelatoriosPacientes() {
       ultimoSobrenome = partes.length > 1 ? partes[partes.length - 1] : "";
     }
 
-    // Formata a data e o horário para compor o nome do arquivo
+    // Formata a data e a hora da resposta para compor o nome do arquivo
     const dataArquivo = Utilities.formatDate(
       dataResposta,
       Session.getScriptTimeZone(),
@@ -128,7 +146,8 @@ function gerarRelatoriosPacientes() {
       "HH-mm-ss"
     );
 
-    // Nome final do arquivo
+    // Exemplo de nome final:
+    // Maria_Oliveira_06-07-2026_11-30-15.txt
     const nomeArquivo =
       primeiroNome +
       (ultimoSobrenome ? "_" + ultimoSobrenome : "") +
@@ -138,16 +157,17 @@ function gerarRelatoriosPacientes() {
       horaArquivo +
       ".txt";
 
-    // Array que armazenará todas as linhas do relatório
+    // Array que armazenará o conteúdo do relatório
     const linhas = [];
 
-    // Cabeçalho visual do relatório
+    // Cabeçalho visual do arquivo .txt
     linhas.push("==================================================");
     linhas.push("             RELATÓRIO DO PACIENTE");
     linhas.push("==================================================");
     linhas.push("");
 
     // Percorre todas as colunas da resposta e escreve no relatório
+    // no formato: "Nome do campo: valor"
     for (let i = 0; i < cabecalhos.length; i++) {
       const valor =
         dados[i] !== null && dados[i] !== "" ? String(dados[i]) : "";
@@ -156,7 +176,7 @@ function gerarRelatoriosPacientes() {
       linhas.push("");
     }
 
-    // Rodapé do relatório
+    // Rodapé do relatório com data/hora de geração do arquivo
     linhas.push("==================================================");
     linhas.push(
       "Gerado automaticamente pelo sistema em " +
@@ -168,13 +188,13 @@ function gerarRelatoriosPacientes() {
     );
     linhas.push("==================================================");
 
-    // Evita criar arquivo duplicado com o mesmo nome
+    // Evita criar arquivo duplicado caso já exista um arquivo com o mesmo nome
     if (pasta.getFilesByName(nomeArquivo).hasNext()) {
       Logger.log("Arquivo já existe: " + nomeArquivo);
       return;
     }
 
-    // Cria o arquivo .txt na pasta do Drive
+    // Cria o arquivo .txt na pasta do Google Drive
     pasta.createFile(
       nomeArquivo,
       linhas.join("\n"),
