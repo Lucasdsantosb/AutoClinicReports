@@ -31,13 +31,13 @@ No modo de produção (`GERAR_APENAS_UM_RELATORIO_TESTE = false`), ele:
 Durante os testes, recomenda-se manter:
 
 ```javascript
-const GERAR_APENAS_UM_RELATORIO_TESTE = true;
+const MODO_TESTE = true;
 ```
 
 Quando tudo estiver funcionando corretamente, altere para:
 
 ```javascript
-const GERAR_APENAS_UM_RELATORIO_TESTE = false;
+const MODO_TESTE = false;
 ```
 
 A partir desse momento, o acionador passará a processar automaticamente apenas novas respostas da planilha.
